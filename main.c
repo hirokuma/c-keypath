@@ -44,7 +44,7 @@ static void address(void)
 
     uint8_t internalPubKey[EC_PUBLIC_KEY_LEN];
     rc = wally_ec_public_key_from_private_key(internalPrivKey, EC_PRIVATE_KEY_LEN, internalPubKey, sizeof(internalPubKey));
-    if (rc != 0) {
+    if (rc != WALLY_OK) {
         printf("error: wally_ec_public_key_from_private_key fail: %d\n", rc);
         return;
     }
@@ -53,7 +53,7 @@ static void address(void)
 
     uint8_t tweakPubKey[EC_PUBLIC_KEY_LEN];
     rc = wally_ec_public_key_bip341_tweak(internalPubKey, sizeof(internalPubKey), NULL, 0, 0, tweakPubKey, sizeof(tweakPubKey));
-    if (rc != 0) {
+    if (rc != WALLY_OK) {
         printf("error: wally_ec_public_key_bip341_tweak fail: %d\n", rc);
         return;
     }
@@ -63,7 +63,7 @@ static void address(void)
 
     uint8_t tweakPrivKey[EC_PRIVATE_KEY_LEN];
     rc = wally_ec_private_key_bip341_tweak(internalPrivKey, sizeof(internalPrivKey), NULL, 0, 0, tweakPrivKey, sizeof(tweakPrivKey));
-    if (rc != 0) {
+    if (rc != WALLY_OK) {
         printf("error: wally_ec_private_key_bip341_tweak fail: %d\n", rc);
         return;
     }
@@ -79,7 +79,7 @@ static void address(void)
     uint8_t witnessProgram[WALLY_WITNESSSCRIPT_MAX_LEN];
     size_t witnessProgramLen = 0;
     rc = wally_witness_program_from_bytes_and_version(tweakXonlyPubKey, EC_XONLY_PUBLIC_KEY_LEN, 1, 0, witnessProgram, sizeof(witnessProgram), &witnessProgramLen);
-    if (rc != 0) {
+    if (rc != WALLY_OK) {
         printf("error: wally_witness_program_from_bytes fail: %d\n", rc);
         return;
     }
@@ -89,7 +89,7 @@ static void address(void)
     // // bc1ppuxgmd6n4j73wdp688p08a8rte97dkn5n70r2ym6kgsw0v3c5ensrytduf
     char *address;
     rc = wally_addr_segwit_from_bytes(witnessProgram, witnessProgramLen, "bc", 0, &address);
-    if (rc != 0) {
+    if (rc != WALLY_OK) {
         printf("error: wally_addr_segwit_from_bytes fail: %d\n", rc);
         return;
     }
@@ -124,13 +124,13 @@ int main(int argc, char *argv[])
     }
 
     rc = wally_init(0);
-    if (rc != 0) {
+    if (rc != WALLY_OK) {
         printf("error: wally_init fail: %d\n", rc);
         return 1;
     }
 
     rc = wally_cleanup(0);
-    if (rc != 0) {
+    if (rc != WALLY_OK) {
         printf("error: wally_cleanup fail: %d\n", rc);
         return 1;
     }
