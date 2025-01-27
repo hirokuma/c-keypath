@@ -4,7 +4,8 @@
 
 ## prepare
 
-use system installed `libsecp256k1`(built with `--enable-module-recovery`).
+I use system installed `libsecp256k1`(built with `--enable-module-recovery`).  
+(Maybe "libsecp256k1-zkp" works fine too).
 
 ```bash
 mkdir -p libs/libwally-core
