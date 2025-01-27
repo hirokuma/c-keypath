@@ -68,7 +68,7 @@ rmdup = $(strip $(if $1,$(firstword $1) $(call rmdup,$(filter-out $(firstword $1
 # CFLAGS
 ######################################
 CFLAGS += --std=gnu99
-CFLAGS += -Wall -Werror
+CFLAGS += -Wall
 
 ######################################
 # LDFLAGS
