@@ -39,12 +39,19 @@ static const uint8_t TWEAK_PUBKEY[] = {
     0x7a, 0xb2, 0x20, 0xe7, 0xb2, 0x38, 0xa6, 0x67,
 };
 
-#define TXHASH { \
+static const char ADDRESS[] = "bc1ppuxgmd6n4j73wdp688p08a8rte97dkn5n70r2ym6kgsw0v3c5ensrytduf";
+
+// a7115c7267dbb4aab62b37818d431b784fe731f4d2f9fa0939a9980d581690ec:0
+#define OUTPOINT_TXHASH { \
     0xec, 0x90, 0x16, 0x58, 0x0d, 0x98, 0xa9, 0x39,\
     0x09, 0xfa, 0xf9, 0xd2, 0xf4, 0x31, 0xe7, 0x4f,\
     0x78, 0x1b, 0x43, 0x8d, 0x81, 0x37, 0x2b, 0xb6,\
     0xaa, 0xb4, 0xdb, 0x67, 0x72, 0x5c, 0x11, 0xa7,\
 }
+
+const uint32_t OUTPOINT_INDEX = 0;
+
+static const char OUTADDR[] = "bc1qfezv57fvu4z6ew5e6sfsg3sd686nhcuyt8ukve";
 
 static const uint8_t WITNESS_PROGRAM[] = {
     0x51, 0x20, 0x0f, 0x0c, 0x8d, 0xb7, 0x53, 0xac,
@@ -95,6 +102,10 @@ static const uint8_t TXDATA[] = {
     0x22, 0xae, 0x01, 0x00, 0x00, 0x00, 0x00,
 };
 
+static const uint64_t PREV_AMOUNT = 20000UL;
+static const uint64_t FEE = 10000UL;
+static const uint64_t SENT_AMOUNT = PREV_AMOUNT - FEE;
+
 static void help(const char *cmd)
 {
     printf("usage:\n");
@@ -116,7 +127,9 @@ static void address(void)
     int rc;
 
     uint8_t internalPubKey[EC_PUBLIC_KEY_LEN];
-    rc = wally_ec_public_key_from_private_key(INTERNAL_PRIVKEY, EC_PRIVATE_KEY_LEN, internalPubKey, sizeof(internalPubKey));
+    rc = wally_ec_public_key_from_private_key(
+        INTERNAL_PRIVKEY, EC_PRIVATE_KEY_LEN,
+        internalPubKey, sizeof(internalPubKey));
     if (rc != WALLY_OK) {
         printf("error: wally_ec_public_key_from_private_key fail: %d\n", rc);
         return;
@@ -125,7 +138,11 @@ static void address(void)
     dump(internalPubKey, sizeof(internalPubKey));
 
     uint8_t tweakPubKey[EC_PUBLIC_KEY_LEN];
-    rc = wally_ec_public_key_bip341_tweak(internalPubKey, sizeof(internalPubKey), NULL, 0, 0, tweakPubKey, sizeof(tweakPubKey));
+    rc = wally_ec_public_key_bip341_tweak(
+        internalPubKey, sizeof(internalPubKey),
+        NULL, 0,
+        0,
+        tweakPubKey, sizeof(tweakPubKey));
     if (rc != WALLY_OK) {
         printf("error: wally_ec_public_key_bip341_tweak fail: %d\n", rc);
         return;
@@ -138,7 +155,11 @@ static void address(void)
     }
 
     uint8_t tweakPrivKey[EC_PRIVATE_KEY_LEN];
-    rc = wally_ec_private_key_bip341_tweak(INTERNAL_PRIVKEY, sizeof(INTERNAL_PRIVKEY), NULL, 0, 0, tweakPrivKey, sizeof(tweakPrivKey));
+    rc = wally_ec_private_key_bip341_tweak(
+        INTERNAL_PRIVKEY, sizeof(INTERNAL_PRIVKEY),
+        NULL, 0,
+        0,
+        tweakPrivKey, sizeof(tweakPrivKey));
     if (rc != WALLY_OK) {
         printf("error: wally_ec_private_key_bip341_tweak fail: %d\n", rc);
         return;
@@ -157,7 +178,11 @@ static void address(void)
 
     uint8_t witnessProgram[WALLY_WITNESSSCRIPT_MAX_LEN];
     size_t witnessProgramLen = 0;
-    rc = wally_witness_program_from_bytes_and_version(tweakXonlyPubKey, EC_XONLY_PUBLIC_KEY_LEN, 1, 0, witnessProgram, sizeof(witnessProgram), &witnessProgramLen);
+    rc = wally_witness_program_from_bytes_and_version(
+        tweakXonlyPubKey, EC_XONLY_PUBLIC_KEY_LEN,
+        1,
+        0,
+        witnessProgram, sizeof(witnessProgram), &witnessProgramLen);
     if (rc != WALLY_OK) {
         printf("error: wally_witness_program_from_bytes fail: %d\n", rc);
         return;
@@ -165,14 +190,21 @@ static void address(void)
     printf("witness program: ");
     dump(witnessProgram, witnessProgramLen);
 
-    // // bc1ppuxgmd6n4j73wdp688p08a8rte97dkn5n70r2ym6kgsw0v3c5ensrytduf
     char *address;
-    rc = wally_addr_segwit_from_bytes(witnessProgram, witnessProgramLen, "bc", 0, &address);
+    rc = wally_addr_segwit_from_bytes(
+        witnessProgram, witnessProgramLen,
+        "bc",
+        0,
+        &address);
     if (rc != WALLY_OK) {
         printf("error: wally_addr_segwit_from_bytes fail: %d\n", rc);
         return;
     }
     printf("address: %s\n", address);
+    if (strcmp(address, ADDRESS) != 0) {
+        printf("address not same\n");
+    }
+
     wally_free_string(address);
 }
 
@@ -213,7 +245,7 @@ static void spent(void)
         .items_allocation_len = 1,
     };
     const struct wally_tx_input TX_INPUT = {
-        .txhash = TXHASH,
+        .txhash = OUTPOINT_TXHASH,
         .index = 0,
         .sequence = 0xffffffff,
         .script = NULL,
@@ -227,7 +259,6 @@ static void spent(void)
         return;
     }
 
-    const char OUTADDR[] = "bc1qfezv57fvu4z6ew5e6sfsg3sd686nhcuyt8ukve";
     uint8_t outAddrByte[WALLY_SEGWIT_ADDRESS_PUBKEY_MAX_LEN];
     size_t outAddrLen = 0;
     rc = wally_addr_segwit_to_bytes(OUTADDR, "bc", 0, outAddrByte, sizeof(outAddrByte), &outAddrLen);
@@ -249,7 +280,6 @@ static void spent(void)
     }
 #endif
 
-#if 1
     // create sigHash, sig and wally_tx
     rc = wally_tx_init_alloc(
         2, // version
@@ -262,10 +292,9 @@ static void spent(void)
         return;
     }
 
-    // https://mempool.space/ja/tx/a7115c7267dbb4aab62b37818d431b784fe731f4d2f9fa0939a9980d581690ec#vout=0
     const struct wally_tx_input TX_INPUT = {
-        .txhash = TXHASH,
-        .index = 0,
+        .txhash = OUTPOINT_TXHASH,
+        .index = OUTPOINT_INDEX,
         .sequence = 0xffffffff,
         .script = NULL,
         .script_len = 0,
@@ -278,17 +307,19 @@ static void spent(void)
         return;
     }
 
-    const char OUTADDR[] = "bc1qfezv57fvu4z6ew5e6sfsg3sd686nhcuyt8ukve";
     uint8_t outAddrByte[WALLY_SEGWIT_ADDRESS_PUBKEY_MAX_LEN];
     size_t outAddrLen = 0;
-    rc = wally_addr_segwit_to_bytes(OUTADDR, "bc", 0, outAddrByte, sizeof(outAddrByte), &outAddrLen);
+    rc = wally_addr_segwit_to_bytes(
+        OUTADDR,
+        "bc",
+        0, outAddrByte, sizeof(outAddrByte), &outAddrLen);
     if (rc != WALLY_OK) {
         printf("error: wally_addr_segwit_to_bytes fail: %d\n", rc);
         return;
     }
 
     const struct wally_tx_output TX_OUTPUT = {
-        .satoshi = 10000,
+        .satoshi = SENT_AMOUNT,
         .script = outAddrByte,
         .script_len = outAddrLen,
         .features = 0,
@@ -299,7 +330,6 @@ static void spent(void)
         return;
     }
 
-    uint8_t sigHash[EC_MESSAGE_HASH_LEN];
     struct wally_map *scriptPubKey;
     rc = wally_map_init_alloc(1, NULL, &scriptPubKey);
     if (rc != WALLY_OK) {
@@ -315,7 +345,8 @@ static void spent(void)
         return;
     }
 
-    const uint64_t VALUES[] = { 20000 };
+    uint8_t sigHash[EC_MESSAGE_HASH_LEN];
+    const uint64_t VALUES[] = { PREV_AMOUNT };
     rc = wally_tx_get_btc_taproot_signature_hash(
         tx,
         0,
@@ -329,6 +360,7 @@ static void spent(void)
         0,
         sigHash, sizeof(sigHash)
     );
+    wally_map_free(scriptPubKey);
     if (rc != WALLY_OK) {
         printf("error: wally_tx_get_btc_taproot_signature_hash fail: %d\n", rc);
         return;
@@ -351,9 +383,9 @@ static void spent(void)
         return;
     }
 
+    sig[EC_SIGNATURE_LEN] = WALLY_SIGHASH_ALL;
     printf("sig: ");
     dump(sig, sizeof(sig));
-    sig[EC_SIGNATURE_LEN] = 0x01; // SIGHASH_ALL
     if (memcmp(sig, SIG, sizeof(sig)) != 0) {
         printf("error: sig not same\n");
     }
@@ -369,12 +401,14 @@ static void spent(void)
         printf("error: wally_tx_set_input_witness fail: %d\n", rc);
         return;
     }
-    wally_map_free(scriptPubKey);
-#endif
+    wally_tx_witness_stack_free(witness);
 
     uint8_t txData[1024];
     size_t txLen = 0;
-    rc = wally_tx_to_bytes(tx, WALLY_TX_FLAG_USE_WITNESS, txData, sizeof(txData), &txLen);
+    rc = wally_tx_to_bytes(
+        tx,
+        WALLY_TX_FLAG_USE_WITNESS,
+        txData, sizeof(txData), &txLen);
     if (rc != WALLY_OK) {
         printf("error: wally_tx_to_bytes fail: %d\n", rc);
         return;

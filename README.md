@@ -30,6 +30,9 @@ make
 
 ## run
 
+* [outpoint](https://mempool.space/ja/tx/a7115c7267dbb4aab62b37818d431b784fe731f4d2f9fa0939a9980d581690ec#vout=0)
+* [spent tx](https://mempool.space/ja/tx/091d2aaadc409298fd8353a4cd94c319481a0b4623fb00872fe240448e93fcbe#vin=0)
+
 ```console
 $ ./tst 1
 internal pubkey: 03924c163b385af7093440184af6fd6244936d1288cbb41cc3812286d3f83a3329
@@ -38,9 +41,6 @@ tweak privkey:   37f0f35933e8b52e6210dca589523ea5b66827b4749c49456e62fae4c89c646
 witness program: 51200f0c8db753acbd17343a39c2f3f4e35e4be6da749f9e35137ab220e7b238a667
 address: bc1ppuxgmd6n4j73wdp688p08a8rte97dkn5n70r2ym6kgsw0v3c5ensrytduf
 ```
-
-* [outpoint](https://mempool.space/ja/tx/a7115c7267dbb4aab62b37818d431b784fe731f4d2f9fa0939a9980d581690ec#vout=0)
-* [spent tx](https://mempool.space/ja/tx/091d2aaadc409298fd8353a4cd94c319481a0b4623fb00872fe240448e93fcbe#vin=0)
 
 ```console
 $ ./tst 2
