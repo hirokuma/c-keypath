@@ -429,20 +429,7 @@ int main(int argc, char *argv[])
 {
     int rc;
 
-    if (argc != 2) {
-        help(argv[0]);
-        return 1;
-    }
-
-    if (argv[1][1] != '\0') {
-        help(argv[0]);
-        return 1;
-    }
-    if (argv[1][0] == '1') {
-        address();
-    } else if (argv[1][0] == '2') {
-        spent();
-    } else {
+    if (argc != 2 || argv[1][1] != '\0') {
         help(argv[0]);
         return 1;
     }
@@ -450,6 +437,15 @@ int main(int argc, char *argv[])
     rc = wally_init(0);
     if (rc != WALLY_OK) {
         printf("error: wally_init fail: %d\n", rc);
+        return 1;
+    }
+
+    if (argv[1][0] == '1') {
+        address();
+    } else if (argv[1][0] == '2') {
+        spent();
+    } else {
+        help(argv[0]);
         return 1;
     }
 
