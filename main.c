@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "libwally-core/include/wally_core.h"
-#include "libwally-core/include/wally_crypto.h"
-#include "libwally-core/include/wally_address.h"
-#include "libwally-core/include/wally_map.h"
-#include "libwally-core/include/wally_script.h"
+#include "wally_core.h"
+#include "wally_crypto.h"
+#include "wally_address.h"
+#include "wally_map.h"
+#include "wally_script.h"
 
 #define ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))
 
