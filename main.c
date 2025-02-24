@@ -13,10 +13,17 @@
 static const char ADDR_FAMILY[] = "bc";
 
 static const uint8_t INTERNAL_PRIVKEY[] = {
-    0x55, 0xd7, 0xc5, 0xa9, 0xce, 0x3d, 0x2b, 0x15,
-    0xa6, 0x24, 0x34, 0xd0, 0x12, 0x05, 0xf3, 0xe5,
-    0x90, 0x77, 0xd5, 0x13, 0x16, 0xf5, 0xc2, 0x06,
-    0x28, 0xb3, 0xa4, 0xb8, 0xb2, 0xa7, 0x6f, 0x4c,
+    0xa3, 0x4b, 0x99, 0xf2, 0x2c, 0x79, 0x0c, 0x4e,
+    0x36, 0xb2, 0xb3, 0xc2, 0xc3, 0x5a, 0x36, 0xdb,
+    0x06, 0x22, 0x6e, 0x41, 0xc6, 0x92, 0xfc, 0x82,
+    0xb8, 0xb5, 0x6a, 0xc1, 0xc5, 0x40, 0xc5, 0xbd,
+};
+
+static const uint8_t INTERNAL_PUBKEY[] = {
+    0xa3, 0x4b, 0x99, 0xf2, 0x2c, 0x79, 0x0c, 0x4e,
+    0x36, 0xb2, 0xb3, 0xc2, 0xc3, 0x5a, 0x36, 0xdb,
+    0x06, 0x22, 0x6e, 0x41, 0xc6, 0x92, 0xfc, 0x82,
+    0xb8, 0xb5, 0x6a, 0xc1, 0xc5, 0x40, 0xc5, 0xbd,
 };
 
 #define OUTPOINT_TXHASH { \
@@ -49,6 +56,27 @@ static void dump(const uint8_t *data, size_t len)
         printf("%02x", data[i]);
     }
     printf("\n");
+}
+
+static void tweak_pubkey(
+    uint8_t tweakPubKey[EC_XONLY_PUBLIC_KEY_LEN],
+    const uint8_t internalPubKey[EC_XONLY_PUBLIC_KEY_LEN]
+) {
+    int rc;
+
+    uint8_t tweakPubKeyXY[EC_PUBLIC_KEY_LEN];
+    rc = wally_ec_public_key_bip341_tweak(
+        internalPubKey, EC_XONLY_PUBLIC_KEY_LEN,
+        NULL, 0,
+        0,
+        tweakPubKeyXY, sizeof(tweakPubKeyXY));
+    if (rc != WALLY_OK) {
+        printf("error: wally_ec_public_key_bip341_tweak fail: %d\n", rc);
+        return;
+    }
+    memcpy(tweakPubKey, tweakPubKeyXY + 1, EC_XONLY_PUBLIC_KEY_LEN);
+    printf("tweak pubkey:    ");
+    dump(tweakPubKey, EC_XONLY_PUBLIC_KEY_LEN);
 }
 
 static void tweak_key_pair(
@@ -103,6 +131,10 @@ static void address(void)
     uint8_t tweakPrivKey[EC_PRIVATE_KEY_LEN];
     uint8_t tweakXonlyPubKey[EC_XONLY_PUBLIC_KEY_LEN];
     tweak_key_pair(tweakPrivKey, tweakXonlyPubKey, INTERNAL_PRIVKEY);
+
+    printf("--------------\n");
+    tweak_pubkey(tweakXonlyPubKey, INTERNAL_PUBKEY);
+    printf("--------------\n");
 
     uint8_t witnessProgram[WALLY_WITNESSSCRIPT_MAX_LEN];
     size_t witnessProgramLen = 0;
