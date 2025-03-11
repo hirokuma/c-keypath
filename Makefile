@@ -20,7 +20,8 @@ TESTS_SOURCE_FILES = $(addprefix $(TESTS_DIRECTORY)/, $(TESTS_FILES) )
 INC_PATHS = -I${HOME}/.local/include
 
 # Link Library
-LIBS = -L ${HOME}/.local/lib -lwallycore -lsecp256k1 -lmbedtls -lmbedx509 -lmbedcrypto
+LIBS = -L ${HOME}/.local/lib -lwallycore -lsecp256k1
+#LIBS = -L ${HOME}/.local/lib -lwallycore -lsecp256k1 -lmbedtls -lmbedx509 -lmbedcrypto
 
 CFLAGS =
 LDFLAGS = --static
