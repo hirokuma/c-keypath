@@ -9,30 +9,17 @@ C_FILES += \
 # object files
 OBJECT_DIRECTORY = _build
 
-# test sources
-TESTS_DIRECTORY = ./tests
-TESTS_FILES += \
+CFLAGS += --std=gnu99 -Wall
 
-TESTS_SOURCE_FILES = $(addprefix $(TESTS_DIRECTORY)/, $(TESTS_FILES) )
-
-
-# includes common to all targets(-I<dir>)
-INC_PATHS = -I${HOME}/.local/include
-
-# Link Library
-LIBS = -L ${HOME}/.local/lib -lwallycore -lsecp256k1
-#LIBS = -L ${HOME}/.local/lib -lwallycore -lsecp256k1 -lmbedtls -lmbedx509 -lmbedcrypto
-
-CFLAGS =
-LDFLAGS = --static
-
-
-#GNU_PREFIX := arm-none-eabi-
+PKG_CONF_LIBS=\
+	wallycore \
+	libsecp256k1
+CFLAGS += `pkg-config --cflags $(PKG_CONF_LIBS)`
+LDFLAGS += `pkg-config --libs $(PKG_CONF_LIBS)`
 
 # default target - first one defined
 #	debug
 #	release
-#	tests
 default: debug
 
 ###########################################
@@ -65,17 +52,6 @@ SIZE    		:= "$(GNU_PREFIX)size"
 # https://github.com/br101/pingcheck/blob/master/Makefile.default
 rmdup = $(strip $(if $1,$(firstword $1) $(call rmdup,$(filter-out $(firstword $1),$1))))
 
-######################################
-# CFLAGS
-######################################
-CFLAGS += --std=gnu99
-CFLAGS += -Wall
-
-######################################
-# LDFLAGS
-######################################
-
-
 #building all targets
 all:
 	$(NO_ECHO)$(MAKE) -f $(MAKEFILE_NAME) -C $(MAKEFILE_DIR) -e cleanobj
@@ -106,21 +82,13 @@ debug: LDFLAGS += -ggdb3 -O0
 debug: $(BUILD_DIRECTORIES) $(OBJECTS)
 	@echo [DEBUG]Linking target: $(OUTPUT_FILENAME)
 	@echo [DEBUG]CFLAGS=$(CFLAGS)
-	$(CC) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME)
+	$(CC) $(OBJECTS) $(LDFLAGS) -o $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME)
 
 release: CFLAGS += -DNDEBUG -O3
 release: LDFLAGS += -O3
 release: $(BUILD_DIRECTORIES) $(OBJECTS)
 	@echo [RELEASE]Linking target: $(OUTPUT_FILENAME)
-	$(NO_ECHO)$(CC) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME)
-
-tests: CFLAGS += -DDEBUG
-tests: CFLAGS += -ggdb3 -O0
-tests: LDFLAGS += -ggdb3 -O0
-tests: $(BUILD_DIRECTORIES) $(OBJECTS)
-	@echo [DEBUG]Linking target: $(OUTPUT_FILENAME)
-	@echo [DEBUG]CFLAGS=$(CFLAGS)
-	$(NO_ECHO)$(CC) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME)
+	$(NO_ECHO)$(CC) $(OBJECTS) $(LDFLAGS) -o $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME)
 
 ## Create build directories
 $(BUILD_DIRECTORIES):
@@ -134,7 +102,7 @@ $(OBJECT_DIRECTORY)/%.o: %.c
 # Link
 $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME): $(BUILD_DIRECTORIES) $(OBJECTS)
 	@echo Linking target: $(OUTPUT_FILENAME)
-	$(NO_ECHO)$(CC) $(LDFLAGS) $(OBJECTS) $(LIBS) -o $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME)
+	$(NO_ECHO)$(CC) $(OBJECTS) $(LDFLAGS) -o $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME)
 
 clean:
 	$(RM) $(OBJECT_DIRECTORY) $(OUTPUT_BINARY_DIRECTORY)/$(OUTPUT_FILENAME)
