@@ -208,6 +208,51 @@ static void address(void)
     wally_free_string(address);
 }
 
+static void address2(void)
+{
+    int rc;
+
+    uint8_t internalPubKey[EC_PUBLIC_KEY_LEN];
+    rc = wally_ec_public_key_from_private_key(
+        INTERNAL_PRIVKEY, EC_PRIVATE_KEY_LEN,
+        internalPubKey, sizeof(internalPubKey));
+    if (rc != WALLY_OK) {
+        printf("error: wally_ec_public_key_from_private_key fail: %d\n", rc);
+        return;
+    }
+    printf("internal pubkey: ");
+    dump(internalPubKey, sizeof(internalPubKey));
+
+    uint8_t witnessProgram[WALLY_SCRIPTPUBKEY_P2TR_LEN];
+    size_t written;
+    rc = wally_scriptpubkey_p2tr_from_bytes(
+        internalPubKey, sizeof(internalPubKey),
+        0, witnessProgram, sizeof(witnessProgram), &written);
+    if (rc != WALLY_OK || written != sizeof(witnessProgram)) {
+        printf("error: wally_scriptpubkey_p2tr_from_bytes fail: %d\n", rc);
+        return;
+    }
+    printf("witness program: ");
+    dump(witnessProgram, written);
+
+    char *address;
+    rc = wally_addr_segwit_from_bytes(
+        witnessProgram, sizeof(witnessProgram),
+        "bc",
+        0,
+        &address);
+    if (rc != WALLY_OK) {
+        printf("error: wally_addr_segwit_from_bytes fail: %d\n", rc);
+        return;
+    }
+    printf("address: %s\n", address);
+    if (strcmp(address, ADDRESS) != 0) {
+        printf("address not same\n");
+    }
+
+    wally_free_string(address);
+}
+
 static void spent(void)
 {
     int rc;
@@ -444,6 +489,8 @@ int main(int argc, char *argv[])
         address();
     } else if (argv[1][0] == '2') {
         spent();
+    } else if (argv[1][0] == '3') {
+        address2();
     } else {
         help(argv[0]);
         return 1;
